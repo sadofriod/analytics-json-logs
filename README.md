@@ -1,5 +1,5 @@
 # Overview
-![Overview](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![Overview](https://github.com/sadofriod/analytics-json-logs/blob/main/overview.png?raw=true)
 
 # Setup
 - `npm install`
