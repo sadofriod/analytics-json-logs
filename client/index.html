@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/json-formatter-js@2.5.11/dist/json-formatter.min.css">
+  <style>
+    #container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #container>div {
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      flex: 1;
+      overflow: auto;
+      height: 90%;
+      box-sizing: content-box;
+    }
+
+    #container>div>h3 {
+      margin: 0;
+      padding: 0;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+
+    #merged-same-logs-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #show-all-logs-btn {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body style="margin: 0; padding: 0;">
+  <div id="container"></div>
+  <button id="merged-same-logs-btn">Merge same logs</button>
+  <button id="show-all-logs-btn">Show all logs</button>
+</body>
+<script
+  src="https://cdn.jsdelivr.net/npm/json-formatter-js@2.5.11/dist/json-formatter.umd.min.js"></script>
+<script>
+
+  const container = document.getElementById('container');
+  const renderLogs = (data) => {
+    for (const key in data) {
+      const log = data[key];
+      const formatter = new JSONFormatter(log, 1, {
+        animateOpen: true,
+        animateClose: true,
+        useToJSON: true,
+        open: true
+      });
+      const h3 = document.createElement('h3');
+      const column = document.createElement('div');
+      column.appendChild(h3);
+      column.appendChild(formatter.render());
+      h3.innerText = key;
+      container.appendChild(column);
+    }
+  }
+
+  const main = async () => {
+    const response = await fetch('/getLogs');
+    const data = await response.json();
+    renderLogs(data);
+  }
+  main();
+
+  const mergeBtn = document.getElementById('merged-same-logs-btn');
+  mergeBtn.addEventListener('click', async () => {
+    container.innerHTML = '';
+    const response = await fetch('/getMergedSameLogs');
+    const data = await response.json();
+    renderLogs(data);
+  });
+
+  const showAllLogsBtn = document.getElementById('show-all-logs-btn');
+  showAllLogsBtn.addEventListener('click', async () => {
+    container.innerHTML = '';
+    const response = await fetch('/getLogs');
+    const data = await response.json();
+    renderLogs(data);
+  });
+</script>
+
+</html>
