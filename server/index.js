@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { generateLogs } = require('..');
+const { tryToParseJson } = require('../tryToParseJson');
+const readline = require('readline');
 
 const app = express();
 
@@ -19,6 +21,29 @@ const getLogs = () => {
     result[file] = JSON.parse(content);
   });
   return result;
+}
+
+const generateSourceLogs = () => {
+  if (!process.argv[2]) {
+    generateLogs();
+    return;
+  }
+  if (!path.isAbsolute(process.argv[2])) {
+    generateLogs(path.resolve(__dirname, `../${process.argv[2]}`));
+  } else {
+    generateLogs(process.argv[2]);
+  }
+}
+
+const getLogsPath = () => {
+  const logPath = path.join(__dirname, '../asset.log');
+  if (!process.argv[2]) {
+    return logPath;
+  }
+  if (!path.isAbsolute(process.argv[2])) {
+    return path.resolve(__dirname, `../${process.argv[2]}`);
+  }
+  return process.argv[2];
 }
 
 const mergedSameLogs = (logs) => {
@@ -40,15 +65,24 @@ app.get('/getMergedSameLogs', (_, res) => {
   res.json(result);
 });
 
+app.get('/getSourceLogs', (_, res) => {
+  const logPath = getLogsPath();
+  const fileStream = fs.createReadStream(logPath);
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+  const filteredLines = [];
+  rl.on('line', (line) => {
+    const data = tryToParseJson(line);
+    filteredLines.push(data);
+  });
+  rl.on('close', () => {
+    res.json(filteredLines);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  if (!process.argv[2]) {
-    generateLogs();
-    return;
-  }
-  if (!path.isAbsolute(process.argv[2])) {
-    generateLogs(path.resolve(__dirname, `../${process.argv[2]}`));
-  } else {
-    generateLogs(process.argv[2]);
-  }
+  generateSourceLogs()
 });
